@@ -95,9 +95,6 @@ pair<double,double> CalculateMaxAmpandSilenceSTE(double dcShift,char c,int y,str
 	cout << inFileName << endl;
 	ifstream infile;							
 	infile.open(inFileName);
-
-	/*ifstream infile;								
-	infile.open(SAMPLE_FILE);*/
 	
 	double steSilence=0;
 	double maxAmp = 0;
@@ -222,12 +219,6 @@ void cepstralcoefficients(vector<double> R,vector<double> alpha,vector<long doub
 			ceps[m]=sum;
 		}
 	}
-	//cout << "\nCepstral Coefficient values\n";//write the resuls to file
-	//for(int i=0;i<=Q;i++)
-	//{
-	//	cout << ceps[i] << " ";
-	//}
-	//cout << endl;
 	return;
 }
 vector<long double> RaisedSineWeights()
@@ -293,34 +284,23 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			//cout << steSilence << " " << thresholdSound << " " << maxAmp << " " << normalFactor << endl;
 			string str = to_string(long long(y));
-			string inFileName = PRE_PATH_INPUT;
-
 			string suffix = "";
 			suffix = suffix + vowels[x] + "_" + str + ".txt";
 
+			string inFileName = PRE_PATH_INPUT;
 			inFileName = inFileName + suffix;
-			//cout << inFileName << endl;
 			ifstream infile;							
 			infile.open(inFileName);
-			/*ifstream infile;
-			infile.open(SAMPLE_FILE);*/
 
 			string outFileName = PRE_PATH_OUTPUT;
 			outFileName = outFileName + suffix;
 			ofstream outfile;
 			outfile.open(outFileName);
 
-			/*ofstream outfile;
-			outfile.open("outputMultipleWords.txt");*/
-
-
 			string compressFileName = PRE_PATH_COFF;
 			compressFileName = compressFileName + suffix;
 			ofstream compressFile;
 			compressFile.open(compressFileName);
-
-			/*ofstream compressFile;
-			compressFile.open(COMPRESSED_FILE);*/
 
 			if(infile.is_open())
 			{
@@ -332,7 +312,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					countIgnore++;
 				}
 
-				vector<vector<double>> word;							//word variable store the sample of word
+				vector<vector<double>> word;						
 				int wordStarted=0;
 				int wordCount = 0;
 				int windowNumber = 0;
@@ -424,7 +404,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					{
 						if(wordStarted==0)
 						{
-							if(meanSqWindow > thresholdSound)            // word started
+							if(meanSqWindow > thresholdSound)            
 							{
 								wordStarted = 1;
 								wordCount++;
@@ -458,7 +438,6 @@ int _tmain(int argc, _TCHAR* argv[])
 												compressFile << R[j] << " ";
 											}
 											compressFile << endl;
-											//R.clear();
 
 											vector<double> alpha = windowCoefficients.second;
 											if(alpha.size()==0)
@@ -485,10 +464,9 @@ int _tmain(int argc, _TCHAR* argv[])
 											}
 											compressFile << endl;
 
-											vector<long double> raisedCeps(Q+1,0);
-
 											vector<long double> weights = RaisedSineWeights();
 
+											vector<long double> raisedCeps(Q+1,0);
 											raisedCeps[0] = ceps[0]*weights[0]; 
 
 											compressFile << "Raised Ceps's are:" << endl;
@@ -499,9 +477,7 @@ int _tmain(int argc, _TCHAR* argv[])
 											}
 											compressFile << endl;
 
-											//cout << "before size " << cepsTableForEachVowel[windowNo].size() << endl;
 											cepsTableForEachVowel[windowNo].push_back(raisedCeps);
-											//cout << "after size " << cepsTableForEachVowel[windowNo].size() << endl;
 											windowNo++;
 
 											compressFile << endl;
@@ -538,7 +514,6 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 			outfile.close();
 			compressFile.close();
-			//cout << cepsTableForEachVowel[0].size() << endl;
 		}
 		vector<long double> averageCepsforParticularVowel[COUNT_STEADY_WINDOW];
 		cout << cepsTableForEachVowel[0].size() << endl;
@@ -568,17 +543,15 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 			cout << endl;
 		}
-		string averageCeps = AVERAGE_CEPS;
 
 		string suffix = "";
 		suffix = suffix + vowels[x] + ".txt";
 
 		string averageCepsFileName = AVERAGE_CEPS;
-
 		averageCepsFileName = averageCepsFileName + suffix;
-		//cout << inFileName << endl;
 		ofstream averageCepsEachVowel;							
 		averageCepsEachVowel.open(averageCepsFileName);
+
 		for(int i=0;i<COUNT_STEADY_WINDOW;i++)
 		{
 			for(int j=0;j<averageCepsforParticularVowel[i].size();j++)
@@ -611,34 +584,23 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			//cout << steSilence << " " << thresholdSound << " " << maxAmp << " " << normalFactor << endl;
 			string str = to_string(long long(y));
-			string inFileName = PRE_PATH_TEST;
-
 			string suffix = "";
 			suffix = suffix + vowels[x] + "_" + str + ".txt";
 
+			string inFileName = PRE_PATH_TEST;
 			inFileName = inFileName + suffix;
-			//cout << inFileName << endl;
 			ifstream infile;							
 			infile.open(inFileName);
-			/*ifstream infile;
-			infile.open(SAMPLE_FILE);*/
 
 			string outFileName = PRE_PATH_TEST_OUTPUT;
 			outFileName = outFileName + suffix;
 			ofstream outfile;
 			outfile.open(outFileName);
 
-			/*ofstream outfile;
-			outfile.open("outputMultipleWords.txt");*/
-
-
 			string compressFileName = PRE_PATH_TEST_COFF;
 			compressFileName = compressFileName + suffix;
 			ofstream compressFile;
 			compressFile.open(compressFileName);
-
-			/*ofstream compressFile;
-			compressFile.open(COMPRESSED_FILE);*/
 
 			if(infile.is_open())
 			{
@@ -649,8 +611,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					infile >> sampleValue;
 					countIgnore++;
 				}
-
-				vector<vector<double>> word;							//word variable store the sample of word
+				vector<vector<double>> word;						
 				int wordStarted=0;
 				int wordCount = 0;
 				int windowNumber = 0;
@@ -694,7 +655,6 @@ int _tmain(int argc, _TCHAR* argv[])
 												compressFile << R[j] << " ";
 											}
 											compressFile << endl;
-											//R.clear();
 
 											vector<double> alpha = windowCoefficients.second;
 											if(alpha.size()==0)
@@ -743,7 +703,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					{
 						if(wordStarted==0)
 						{
-							if(meanSqWindow > thresholdSound)            // word started
+							if(meanSqWindow > thresholdSound)          
 							{
 								wordStarted = 1;
 								wordCount++;
@@ -777,7 +737,6 @@ int _tmain(int argc, _TCHAR* argv[])
 												compressFile << R[j] << " ";
 											}
 											compressFile << endl;
-											//R.clear();
 
 											vector<double> alpha = windowCoefficients.second;
 											if(alpha.size()==0)
@@ -855,16 +814,6 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 			outfile.close();
 			compressFile.close();
-
-			/*for(int i=0;i<COUNT_STEADY_WINDOW;i++)
-			{
-				for(int j=1;j<=Q;j++)
-				{
-					cout << cepsForEachTestVowel[i][j] << " ";
-				}
-				cout << endl;
-			}
-			cout << endl;*/
 			int flag =0;
 			long double minDistance;
 			char vow;
@@ -876,7 +825,6 @@ int _tmain(int argc, _TCHAR* argv[])
 				string averageCepsFileName = AVERAGE_CEPS;
 
 				averageCepsFileName = averageCepsFileName + suffix;
-				//cout << averageCepsFileName << endl;
 				ifstream averageCepsEachVowel;							
 				averageCepsEachVowel.open(averageCepsFileName);
 
@@ -902,17 +850,8 @@ int _tmain(int argc, _TCHAR* argv[])
 						{
 							currWindowDist += Tokhura_Weights[j]*((cepsForEachTestVowel[i][j+1] -averageCepsforParticularVowel[i][j])*(cepsForEachTestVowel[i][j+1] - averageCepsforParticularVowel[i][j]));
 						}
-						//cout << i+1 << "th window tokhura distance " << currWindowDist << endl; 
 						totalDist += currWindowDist;
 					}
-					/*for(int i=0;i<COUNT_STEADY_WINDOW;i++)
-					{
-						for(int j=0;j<Q;j++)
-						{
-							cout << averageCepsforParticularVowel[i][j] << " ";
-						}
-						cout << endl;
-					}*/
 				}
 				cout << "total distance from " <<  vowels[l] << " by summing all window is " << totalDist << endl;
 				if(flag==0)
@@ -931,79 +870,13 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 				}
 				cout << minDistance << endl;
-				//cout << vowelCount << endl;
-				//cout << i << endl;
 			}
 			cout << inFileName << " vowel: " << vow << " minDistance: " << minDistance << endl;
 			cout << endl;
 			result << inFileName << " vowel: " << vow << " minDistance: " << minDistance << endl;
-			//cepsForEachTestVowel[windowNo]
-
 		}
-		
-		//vector<long double> averageCepsforParticularVowel[COUNT_STEADY_WINDOW];
-		//cout << cepsTableForEachVowel[0].size() << endl;
-
-		//for(int k=0;k<COUNT_STEADY_WINDOW;k++)
-		//{
-		//	for(int j=1;j<=Q;j++)
-		//	{
-		//		long double temp = 0;
-		//		for(int i=0;i<10;i++)
-		//		{
-		//			temp += cepsTableForEachVowel[k][i][j]/10;
-		//		}
-		//		averageCepsforParticularVowel[k].push_back(temp);
-		//	}
-		//}
-
-		//for(int k=0;k<COUNT_STEADY_WINDOW;k++)
-		//{
-		//	for(int i=0;i<10;i++)
-		//	{
-		//		for(int j=1;j<=Q;j++)
-		//		{
-		//			cout << cepsTableForEachVowel[k][i][j] << " ";
-		//		}
-		//		cout << endl;
-		//	}
-		//	cout << endl;
-		//}
-		////string averageCeps = AVERAGE_CEPS;
-
-		//string suffix = "";
-		//suffix = suffix + vowels[x] + ".txt";
-
-		//string averageCepsFileName = AVERAGE_CEPS;
-
-		//averageCepsFileName = averageCepsFileName + suffix;
-		////cout << inFileName << endl;
-		//ofstream averageCepsEachVowel;							
-		//averageCepsEachVowel.open(averageCepsFileName);
-		//for(int i=0;i<COUNT_STEADY_WINDOW;i++)
-		//{
-		//	for(int j=0;j<averageCepsforParticularVowel[i].size();j++)
-		//	{
-		//		averageCepsEachVowel << averageCepsforParticularVowel[i][j]<< " ";
-		//	}
-		//	averageCepsEachVowel << endl;
-		//}
-		//averageCepsEachVowel.close();
 	}
-
 	result.close();
-
-
-
-
-
-
-
-
-
-
-
-
 
 	system("pause");
 	return 0;
