@@ -34,9 +34,11 @@
 #define RESULT_FILE "Result.txt"
 
 long double Tokhura_Weights[] = {1.0,3.0,7.0,13.0,19.0,22.0,25.0,33.0,42.0,50.0,56.0,61.0};
+const long double PI = 3.141592653589793238;
+
 using namespace std;
 
-const long double PI = 3.141592653589793238;
+
 
 
 double ShiftandNormalize(double sampleValue,double dcShift,double normalFactor)
@@ -191,10 +193,10 @@ void CalculateRs(vector<double> window,vector<double> &R)
 }
 void cepstralcoefficients(vector<double> R,vector<double> alpha,vector<long double> &ceps)
 {
-	for(int i=0;i<alpha.size();i++)
+	/*for(int i=0;i<alpha.size();i++)
 	{
 		alpha[i] = -alpha[i];
-	}
+	}*/
 	ceps.resize(Q+1);
 	unsigned int m,j;
 	
@@ -274,315 +276,318 @@ int _tmain(int argc, _TCHAR* argv[])
 	//char vowels[] = {'a'};
 	int vowelCount = sizeof(vowels)/sizeof(vowels[0]);
 
-	//for(int x=0;x<vowelCount;x++)
-	//{
-	//	vector<vector<long double>> cepsTableForEachVowel[COUNT_STEADY_WINDOW];
-	//	for(int y=1;y<=10;y++)
-	//	{
-	//		double dcShift = CalculateDCShift(vowels[x],y,PRE_PATH_INPUT);
+	for(int x=0;x<vowelCount;x++)
+	{
+		vector<vector<long double>> cepsTableForEachVowel[COUNT_STEADY_WINDOW];
+		for(int y=1;y<=10;y++)
+		{
+			double dcShift = CalculateDCShift(vowels[x],y,PRE_PATH_INPUT);
 
-	//		pair<double,double> p = CalculateMaxAmpandSilenceSTE(dcShift,vowels[x],y,PRE_PATH_INPUT);
-	//
-	//		double steSilence = p.first;
-	//		double thresholdSound = steSilence*THRESH_FACTOR;
+			pair<double,double> p = CalculateMaxAmpandSilenceSTE(dcShift,vowels[x],y,PRE_PATH_INPUT);
+	
+			double steSilence = p.first;
+			double thresholdSound = steSilence*THRESH_FACTOR;
 
-	//		double maxAmp = p.second;
-	//		double normalFactor = MAX_AMP/maxAmp;
+			double maxAmp = p.second;
+			double normalFactor = MAX_AMP/maxAmp;
 
-	//		//cout << steSilence << " " << thresholdSound << " " << maxAmp << " " << normalFactor << endl;
-	//		string str = to_string(long long(y));
-	//		string inFileName = PRE_PATH_INPUT;
+			//cout << steSilence << " " << thresholdSound << " " << maxAmp << " " << normalFactor << endl;
+			string str = to_string(long long(y));
+			string inFileName = PRE_PATH_INPUT;
 
-	//		string suffix = "";
-	//		suffix = suffix + vowels[x] + "_" + str + ".txt";
+			string suffix = "";
+			suffix = suffix + vowels[x] + "_" + str + ".txt";
 
-	//		inFileName = inFileName + suffix;
-	//		//cout << inFileName << endl;
-	//		ifstream infile;							
-	//		infile.open(inFileName);
-	//		/*ifstream infile;
-	//		infile.open(SAMPLE_FILE);*/
+			inFileName = inFileName + suffix;
+			//cout << inFileName << endl;
+			ifstream infile;							
+			infile.open(inFileName);
+			/*ifstream infile;
+			infile.open(SAMPLE_FILE);*/
 
-	//		string outFileName = PRE_PATH_OUTPUT;
-	//		outFileName = outFileName + suffix;
-	//		ofstream outfile;
-	//		outfile.open(outFileName);
+			string outFileName = PRE_PATH_OUTPUT;
+			outFileName = outFileName + suffix;
+			ofstream outfile;
+			outfile.open(outFileName);
 
-	//		/*ofstream outfile;
-	//		outfile.open("outputMultipleWords.txt");*/
+			/*ofstream outfile;
+			outfile.open("outputMultipleWords.txt");*/
 
 
-	//		string compressFileName = PRE_PATH_COFF;
-	//		compressFileName = compressFileName + suffix;
-	//		ofstream compressFile;
-	//		compressFile.open(compressFileName);
+			string compressFileName = PRE_PATH_COFF;
+			compressFileName = compressFileName + suffix;
+			ofstream compressFile;
+			compressFile.open(compressFileName);
 
-	//		/*ofstream compressFile;
-	//		compressFile.open(COMPRESSED_FILE);*/
+			/*ofstream compressFile;
+			compressFile.open(COMPRESSED_FILE);*/
 
-	//		if(infile.is_open())
-	//		{
-	//			int countIgnore =0;
-	//			while(!infile.eof() && countIgnore<IGNORE_SAMPLES)
-	//			{
-	//				int sampleValue;
-	//				infile >> sampleValue;
-	//				countIgnore++;
-	//			}
+			if(infile.is_open())
+			{
+				int countIgnore =0;
+				while(!infile.eof() && countIgnore<IGNORE_SAMPLES)
+				{
+					int sampleValue;
+					infile >> sampleValue;
+					countIgnore++;
+				}
 
-	//			vector<vector<double>> word;							//word variable store the sample of word
-	//			int wordStarted=0;
-	//			int wordCount = 0;
-	//			int windowNumber = 0;
-	//			while(!infile.eof())
-	//			{
-	//				double meanSqWindow=0;
-	//				vector<double> windowSamples;
+				vector<vector<double>> word;							//word variable store the sample of word
+				int wordStarted=0;
+				int wordCount = 0;
+				int windowNumber = 0;
+				while(!infile.eof())
+				{
+					double meanSqWindow=0;
+					vector<double> windowSamples;
 
-	//				while(windowSamples.size()<WINDOW_SIZE && !infile.eof())
-	//				{
-	//					double sampleValue;
-	//					infile >> sampleValue;
+					while(windowSamples.size()<WINDOW_SIZE && !infile.eof())
+					{
+						double sampleValue;
+						infile >> sampleValue;
 
-	//					sampleValue = ShiftandNormalize(sampleValue,dcShift,normalFactor);
+						sampleValue = ShiftandNormalize(sampleValue,dcShift,normalFactor);
 
-	//					windowSamples.push_back(sampleValue);
-	//					meanSqWindow += (sampleValue*sampleValue)/double(WINDOW_SIZE);
-	//				}
+						windowSamples.push_back(sampleValue);
+						meanSqWindow += (sampleValue*sampleValue)/double(WINDOW_SIZE);
+					}
 
-	//				if(windowSamples.size() < WINDOW_SIZE)
-	//				{
-	//					if(wordStarted==1)
-	//					{
-	//						if(word.size()>10)
-	//							{
-	//								int steadyIndex = findSteadyIndex(word);
-	//								compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
-	//								if(steadyIndex+2<word.size() && steadyIndex-2>=0)
-	//								{
-	//									for(int i=steadyIndex-2;i<=steadyIndex+2;i++)
-	//									{
-	//										compressFile << i+1 << "th window coefficients are:" << endl;
-	//						
-	//										pair<vector<double>,vector<double>> windowCoefficients = CalculateandFindCoefficients(word[i]);
+					if(windowSamples.size() < WINDOW_SIZE)
+					{
+						if(wordStarted==1)
+						{
+							if(word.size()>10)
+								{
+									int steadyIndex = findSteadyIndex(word);
+									compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
+									if(steadyIndex+2<word.size() && steadyIndex-2>=0)
+									{
+										for(int i=steadyIndex-2;i<=steadyIndex+2;i++)
+										{
+											compressFile << i+1 << "th window coefficients are:" << endl;
+							
+											pair<vector<double>,vector<double>> windowCoefficients = CalculateandFindCoefficients(word[i]);
 
-	//										vector<double> R = windowCoefficients.first;
-	//										compressFile << "R's are:" << endl;
-	//										for(int j=0;j<13;j++)
-	//										{
-	//											compressFile << R[j] << " ";
-	//										}
-	//										compressFile << endl;
-	//										//R.clear();
+											vector<double> R = windowCoefficients.first;
+											compressFile << "R's are:" << endl;
+											for(int j=0;j<13;j++)
+											{
+												compressFile << R[j] << " ";
+											}
+											compressFile << endl;
+											//R.clear();
 
-	//										vector<double> alpha = windowCoefficients.second;
-	//										if(alpha.size()==0)
-	//										{
-	//											compressFile << "Alpha's can't be calculated as R[0] is 0" << endl;
-	//										}
-	//										else
-	//										{
-	//											compressFile << "Alpha's are:" << endl;
-	//											for(int j=1;j<alpha.size();j++)
-	//											{
-	//												compressFile << " " << alpha[j];
-	//											}
-	//											compressFile << endl;
-	//										}
+											vector<double> alpha = windowCoefficients.second;
+											if(alpha.size()==0)
+											{
+												compressFile << "Alpha's can't be calculated as R[0] is 0" << endl;
+											}
+											else
+											{
+												compressFile << "Alpha's are:" << endl;
+												for(int j=1;j<alpha.size();j++)
+												{
+													compressFile << " " << alpha[j];
+												}
+												compressFile << endl;
+											}
 
-	//										vector<long double> ceps;
-	//										cepstralcoefficients(R,alpha,ceps);
+											vector<long double> ceps;
+											cepstralcoefficients(R,alpha,ceps);
 
-	//										compressFile << "Ceps's are:" << endl;
-	//										for(int j=1;j<ceps.size();j++)
-	//										{
-	//											compressFile << " " << ceps[j];
-	//										}
-	//										compressFile << endl;
-	//										compressFile << endl;
-	//									}
-	//								}
-	//								else
-	//								{
-	//									compressFile << "Steady Windows out of range" << endl;
-	//								}
-	//							}
-	//							else
-	//							{
-	//								outfile << "word was having less than 10 windows" << endl;
-	//							}
-	//						outfile << "word ended last word incompletely recorded" << endl;
-	//						word.clear();
-	//						wordStarted = 0;
-	//					}
-	//					break;
-	//				}
+											compressFile << "Ceps's are:" << endl;
+											for(int j=1;j<ceps.size();j++)
+											{
+												compressFile << " " << ceps[j];
+											}
+											compressFile << endl;
+											compressFile << endl;
+										}
+									}
+									else
+									{
+										compressFile << "Steady Windows out of range" << endl;
+									}
+								}
+								else
+								{
+									outfile << "word was having less than 10 windows" << endl;
+								}
+							outfile << "word ended last word incompletely recorded" << endl;
+							word.clear();
+							wordStarted = 0;
+						}
+						break;
+					}
 
-	//				else
-	//				{
-	//					if(wordStarted==0)
-	//					{
-	//						if(meanSqWindow > thresholdSound)            // word started
-	//						{
-	//							wordStarted = 1;
-	//							wordCount++;
-	//							word.push_back(windowSamples);
-	//							outfile<< endl;
-	//							outfile<< "word started" << endl;
-	//						}
-	//					}
-	//					else
-	//					{
-	//						if(meanSqWindow < thresholdSound)
-	//						{
-	//							if(word.size()>10)
-	//							{
-	//								int steadyIndex = findSteadyIndex(word);
-	//								compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
-	//								if(steadyIndex+2<word.size() && steadyIndex-2>=0)
-	//								{
-	//									int windowNo = 0;
-	//									for(int i=steadyIndex-2;i<=steadyIndex+2;i++)
-	//									{
-	//										compressFile << i+1 << "th window coefficients are:" << endl;
-	//						
-	//										pair<vector<double>,vector<double>> windowCoefficients = CalculateandFindCoefficients(word[i]);
+					else
+					{
+						if(wordStarted==0)
+						{
+							if(meanSqWindow > thresholdSound)            // word started
+							{
+								wordStarted = 1;
+								wordCount++;
+								word.push_back(windowSamples);
+								outfile<< endl;
+								outfile<< "word started" << endl;
+							}
+						}
+						else
+						{
+							if(meanSqWindow < thresholdSound)
+							{
+								if(word.size()>10)
+								{
+									int steadyIndex = findSteadyIndex(word);
+									compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
+									if(steadyIndex+2<word.size() && steadyIndex-2>=0)
+									{
+										int windowNo = 0;
+										for(int i=steadyIndex-2;i<=steadyIndex+2;i++)
+										{
+											compressFile << i+1 << "th window coefficients are:" << endl;
+							
+											pair<vector<double>,vector<double>> windowCoefficients = CalculateandFindCoefficients(word[i]);
 
-	//										vector<double> R = windowCoefficients.first;
-	//										compressFile << "R's are:" << endl;
-	//										for(int j=0;j<13;j++)
-	//										{
-	//											compressFile << R[j] << " ";
-	//										}
-	//										compressFile << endl;
-	//										//R.clear();
+											vector<double> R = windowCoefficients.first;
+											compressFile << "R's are:" << endl;
+											for(int j=0;j<13;j++)
+											{
+												compressFile << R[j] << " ";
+											}
+											compressFile << endl;
+											//R.clear();
 
-	//										vector<double> alpha = windowCoefficients.second;
-	//										if(alpha.size()==0)
-	//										{
-	//											compressFile << "Alpha's can't be calculated as R[0] is 0" << endl;
-	//										}
-	//										else
-	//										{
-	//											compressFile << "Alpha's are:" << endl;
-	//											for(int j=1;j<alpha.size();j++)
-	//											{
-	//												compressFile << " " << alpha[j];
-	//											}
-	//											compressFile << endl;
-	//										}
+											vector<double> alpha = windowCoefficients.second;
+											if(alpha.size()==0)
+											{
+												compressFile << "Alpha's can't be calculated as R[0] is 0" << endl;
+											}
+											else
+											{
+												compressFile << "Alpha's are:" << endl;
+												for(int j=1;j<alpha.size();j++)
+												{
+													compressFile << " " << alpha[j];
+												}
+												compressFile << endl;
+											}
 
-	//										vector<long double> ceps;
-	//										cepstralcoefficients(R,alpha,ceps);
+											vector<long double> ceps;
+											cepstralcoefficients(R,alpha,ceps);
 
-	//										compressFile << "Ceps's are:" << endl;
-	//										for(int j=1;j<ceps.size();j++)
-	//										{
-	//											compressFile << " " << ceps[j];
-	//										}
-	//										compressFile << endl;
+											compressFile << "Ceps's are:" << endl;
+											for(int j=1;j<ceps.size();j++)
+											{
+												compressFile << " " << ceps[j];
+											}
+											compressFile << endl;
 
-	//										vector<long double> raisedCeps(Q+1,0);
+											vector<long double> raisedCeps(Q+1,0);
 
-	//										vector<long double> weights = RaisedSineWeights();
+											vector<long double> weights = RaisedSineWeights();
 
-	//										raisedCeps[0] = ceps[0]*weights[0]; 
+											raisedCeps[0] = ceps[0]*weights[0]; 
 
-	//										compressFile << "Raised Ceps's are:" << endl;
-	//										for(int j=1;j<ceps.size();j++)
-	//										{
-	//											raisedCeps[j] = ceps[j]*weights[j];
-	//											compressFile << " " << raisedCeps[j];
-	//										}
-	//										compressFile << endl;
+											compressFile << "Raised Ceps's are:" << endl;
+											for(int j=1;j<ceps.size();j++)
+											{
+												raisedCeps[j] = ceps[j]*weights[j];
+												compressFile << " " << raisedCeps[j];
+											}
+											compressFile << endl;
 
-	//										cepsTableForEachVowel[windowNo].push_back(raisedCeps);
+											//cout << "before size " << cepsTableForEachVowel[windowNo].size() << endl;
+											cepsTableForEachVowel[windowNo].push_back(raisedCeps);
+											//cout << "after size " << cepsTableForEachVowel[windowNo].size() << endl;
+											windowNo++;
 
-	//										windowNo++;
+											compressFile << endl;
+										}
 
-	//										compressFile << endl;
-	//									}
+									}
+									else
+									{
 
-	//								}
-	//								else
-	//								{
-	//									compressFile << "Steady Windows out of range" << endl;
-	//								}
-	//							}
-	//							else
-	//							{
-	//								outfile << "word was having less than 10 windows" << endl;
-	//							}
-	//							outfile<< "word ended" << endl;
-	//							outfile<< endl;
-	//							word.clear();
-	//							wordStarted = 0;
-	//						}
-	//						else
-	//						{
-	//							word.push_back(windowSamples);
-	//						}
-	//					}
-	//					windowNumber++;
-	//					outfile << windowNumber << "th window:- " << meanSqWindow << endl;
-	//					windowSamples.clear();
-	//				}
-	//		
-	//			}
-	//			infile.close();	
-	//		}
-	//		outfile.close();
-	//		compressFile.close();
-	//	}
-	//	vector<long double> averageCepsforParticularVowel[COUNT_STEADY_WINDOW];
-	//	cout << cepsTableForEachVowel[0].size() << endl;
+										compressFile << "Steady Windows out of range" << endl;
+									}
+								}
+								else
+								{
+									outfile << "word was having less than 10 windows" << endl;
+								}
+								outfile<< "word ended" << endl;
+								outfile<< endl;
+								word.clear();
+								wordStarted = 0;
+							}
+							else
+							{
+								word.push_back(windowSamples);
+							}
+						}
+						windowNumber++;
+						outfile << windowNumber << "th window:- " << meanSqWindow << endl;
+						windowSamples.clear();
+					}
+			
+				}
+				infile.close();	
+			}
+			outfile.close();
+			compressFile.close();
+			//cout << cepsTableForEachVowel[0].size() << endl;
+		}
+		vector<long double> averageCepsforParticularVowel[COUNT_STEADY_WINDOW];
+		cout << cepsTableForEachVowel[0].size() << endl;
 
-	//	for(int k=0;k<COUNT_STEADY_WINDOW;k++)
-	//	{
-	//		for(int j=1;j<=Q;j++)
-	//		{
-	//			long double temp = 0;
-	//			for(int i=0;i<10;i++)
-	//			{
-	//				temp += cepsTableForEachVowel[k][i][j]/10;
-	//			}
-	//			averageCepsforParticularVowel[k].push_back(temp);
-	//		}
-	//	}
+		for(int k=0;k<COUNT_STEADY_WINDOW;k++)
+		{
+			for(int j=1;j<=Q;j++)
+			{
+				long double temp = 0;
+				for(int i=0;i<10;i++)
+				{
+					temp += cepsTableForEachVowel[k][i][j]/10;
+				}
+				averageCepsforParticularVowel[k].push_back(temp);
+			}
+		}
 
-	//	for(int k=0;k<COUNT_STEADY_WINDOW;k++)
-	//	{
-	//		for(int i=0;i<10;i++)
-	//		{
-	//			for(int j=1;j<=Q;j++)
-	//			{
-	//				cout << cepsTableForEachVowel[k][i][j] << " ";
-	//			}
-	//			cout << endl;
-	//		}
-	//		cout << endl;
-	//	}
-	//	//string averageCeps = AVERAGE_CEPS;
+		for(int k=0;k<COUNT_STEADY_WINDOW;k++)
+		{
+			for(int i=0;i<10;i++)
+			{
+				for(int j=1;j<=Q;j++)
+				{
+					cout << cepsTableForEachVowel[k][i][j] << " ";
+				}
+				cout << endl;
+			}
+			cout << endl;
+		}
+		string averageCeps = AVERAGE_CEPS;
 
-	//	string suffix = "";
-	//	suffix = suffix + vowels[x] + ".txt";
+		string suffix = "";
+		suffix = suffix + vowels[x] + ".txt";
 
-	//	string averageCepsFileName = AVERAGE_CEPS;
+		string averageCepsFileName = AVERAGE_CEPS;
 
-	//	averageCepsFileName = averageCepsFileName + suffix;
-	//	//cout << inFileName << endl;
-	//	ofstream averageCepsEachVowel;							
-	//	averageCepsEachVowel.open(averageCepsFileName);
-	//	for(int i=0;i<COUNT_STEADY_WINDOW;i++)
-	//	{
-	//		for(int j=0;j<averageCepsforParticularVowel[i].size();j++)
-	//		{
-	//			averageCepsEachVowel << averageCepsforParticularVowel[i][j]<< " ";
-	//		}
-	//		averageCepsEachVowel << endl;
-	//	}
-	//	averageCepsEachVowel.close();
-	//}
+		averageCepsFileName = averageCepsFileName + suffix;
+		//cout << inFileName << endl;
+		ofstream averageCepsEachVowel;							
+		averageCepsEachVowel.open(averageCepsFileName);
+		for(int i=0;i<COUNT_STEADY_WINDOW;i++)
+		{
+			for(int j=0;j<averageCepsforParticularVowel[i].size();j++)
+			{
+				averageCepsEachVowel << averageCepsforParticularVowel[i][j]<< " ";
+			}
+			averageCepsEachVowel << endl;
+		}
+		averageCepsEachVowel.close();
+	}
 
 	ofstream result;
 	result.open(RESULT_FILE);
