@@ -439,7 +439,8 @@ int _tmain(int argc, _TCHAR* argv[])
 							{
 								if(word.size()>10)
 								{
-									int steadyIndex = findSteadyIndex(word);
+									//int steadyIndex = findSteadyIndex(word);
+									int steadyIndex = 5;
 									compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
 									if(steadyIndex+2<word.size() && steadyIndex-2>=0)
 									{
@@ -675,7 +676,8 @@ int _tmain(int argc, _TCHAR* argv[])
 						{
 							if(word.size()>10)
 								{
-									int steadyIndex = findSteadyIndex(word);
+									//int steadyIndex = findSteadyIndex(word);
+									int steadyIndex = 5;
 									compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
 									if(steadyIndex+2<word.size() && steadyIndex-2>=0)
 									{
@@ -756,7 +758,8 @@ int _tmain(int argc, _TCHAR* argv[])
 							{
 								if(word.size()>10)
 								{
-									int steadyIndex = findSteadyIndex(word);
+									//int steadyIndex = findSteadyIndex(word);
+									int steadyIndex = 5;
 									compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
 									if(steadyIndex+2<word.size() && steadyIndex-2>=0)
 									{
