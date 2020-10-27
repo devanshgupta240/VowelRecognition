@@ -15,9 +15,8 @@
 #define Q 12
 #define THRESH_FACTOR 20
 #define IGNORE_SAMPLES 6300				//you can observe that after 6300 samples sample start recording noise
-#define SAMPLE_FILE "input_file.txt"
 #define SILENCE_SAMPLE 1600
-#define COMPRESSED_FILE "compress.txt"
+#define COUNT_STEADY_WINDOW 5
 
 #define PRE_PATH_INPUT "Input_Vowels/170101022_"
 #define PRE_PATH_OUTPUT "Output_Vowels/170101022_Out_"
@@ -28,9 +27,6 @@
 #define PRE_PATH_TEST_COFF "Test_Coefficient_Vowels/170101022_Coff_test_"
 
 #define AVERAGE_CEPS "Average_Ceps/average_ceps_"
-#define CODE_TABLE "Code_Table.txt"
-#define COUNT_STEADY_WINDOW 5
-
 #define RESULT_FILE "Result.txt"
 
 long double Tokhura_Weights[] = {1.0,3.0,7.0,13.0,19.0,22.0,25.0,33.0,42.0,50.0,56.0,61.0};
@@ -40,7 +36,11 @@ using namespace std;
 
 
 
-
+string CalculateFileName(string suffix, string filePath)
+{
+	string fileName = filePath + suffix;
+	return fileName;
+}
 double ShiftandNormalize(double sampleValue,double dcShift,double normalFactor)
 {
 	return (sampleValue-dcShift)*normalFactor;
@@ -51,11 +51,8 @@ double max(double s1,double s2)
 	return (s1>s2?s1:s2);
 }
 
-double CalculateDCShift(char c,int y, string filePath)
+double CalculateDCShift(string inFileName)
 {
-	string str = to_string(long long(y));
-	string inFileName = filePath;
-	inFileName = inFileName + c + "_" + str + ".txt";
 	ifstream infile;							
 	infile.open(inFileName);
 
@@ -87,15 +84,11 @@ double CalculateDCShift(char c,int y, string filePath)
 	return dcShift;
 }
 
-pair<double,double> CalculateMaxAmpandSilenceSTE(double dcShift,char c,int y,string filePath)
+pair<double,double> CalculateMaxAmpandSilenceSTE(double dcShift,string inFileName)
 {
-	string str = to_string(long long(y));
-	string inFileName = filePath;
-	inFileName = inFileName + c + "_" + str + ".txt";
-	cout << inFileName << endl;
 	ifstream infile;							
 	infile.open(inFileName);
-	
+	cout << inFileName << endl;
 	double steSilence=0;
 	double maxAmp = 0;
 
@@ -261,20 +254,22 @@ int findSteadyIndex(vector<vector<double>> word)
 	}
 	return windowIndex;
 }
-int _tmain(int argc, _TCHAR* argv[])
+void calculateAverageCepstralCoefficientForEachVowel(char vowels[],int vowelCount)
 {
-	char vowels[] = {'a','e','i','o','u'};
-	//char vowels[] = {'a'};
-	int vowelCount = sizeof(vowels)/sizeof(vowels[0]);
-
 	for(int x=0;x<vowelCount;x++)
 	{
 		vector<vector<long double>> cepsTableForEachVowel[COUNT_STEADY_WINDOW];
 		for(int y=1;y<=10;y++)
 		{
-			double dcShift = CalculateDCShift(vowels[x],y,PRE_PATH_INPUT);
+			string str = to_string(long long(y));
+			string suffix = "";
+			suffix = suffix + vowels[x] + "_" + str + ".txt";
 
-			pair<double,double> p = CalculateMaxAmpandSilenceSTE(dcShift,vowels[x],y,PRE_PATH_INPUT);
+			string inFileName = CalculateFileName(suffix, PRE_PATH_INPUT);
+			
+			double dcShift = CalculateDCShift(inFileName);
+
+			pair<double,double> p = CalculateMaxAmpandSilenceSTE(dcShift,inFileName);
 	
 			double steSilence = p.first;
 			double thresholdSound = steSilence*THRESH_FACTOR;
@@ -283,22 +278,14 @@ int _tmain(int argc, _TCHAR* argv[])
 			double normalFactor = MAX_AMP/maxAmp;
 
 			//cout << steSilence << " " << thresholdSound << " " << maxAmp << " " << normalFactor << endl;
-			string str = to_string(long long(y));
-			string suffix = "";
-			suffix = suffix + vowels[x] + "_" + str + ".txt";
-
-			string inFileName = PRE_PATH_INPUT;
-			inFileName = inFileName + suffix;
 			ifstream infile;							
 			infile.open(inFileName);
 
-			string outFileName = PRE_PATH_OUTPUT;
-			outFileName = outFileName + suffix;
+			string outFileName = CalculateFileName(suffix, PRE_PATH_OUTPUT);
 			ofstream outfile;
 			outfile.open(outFileName);
 
-			string compressFileName = PRE_PATH_COFF;
-			compressFileName = compressFileName + suffix;
+			string compressFileName = CalculateFileName(suffix, PRE_PATH_COFF);
 			ofstream compressFile;
 			compressFile.open(compressFileName);
 
@@ -337,62 +324,82 @@ int _tmain(int argc, _TCHAR* argv[])
 						if(wordStarted==1)
 						{
 							if(word.size()>10)
+							{
+								//int steadyIndex = findSteadyIndex(word);
+								int steadyIndex = 5;
+								compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
+								if(steadyIndex+2<word.size() && steadyIndex-2>=0)
 								{
-									int steadyIndex = findSteadyIndex(word);
-									compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
-									if(steadyIndex+2<word.size() && steadyIndex-2>=0)
+									int windowNo = 0;
+									for(int i=steadyIndex-2;i<=steadyIndex+2;i++)
 									{
-										for(int i=steadyIndex-2;i<=steadyIndex+2;i++)
-										{
-											compressFile << i+1 << "th window coefficients are:" << endl;
+										compressFile << i+1 << "th window coefficients are:" << endl;
 							
-											pair<vector<double>,vector<double>> windowCoefficients = CalculateandFindCoefficients(word[i]);
+										pair<vector<double>,vector<double>> windowCoefficients = CalculateandFindCoefficients(word[i]);
 
-											vector<double> R = windowCoefficients.first;
-											compressFile << "R's are:" << endl;
-											for(int j=0;j<13;j++)
-											{
-												compressFile << R[j] << " ";
-											}
-											compressFile << endl;
-											//R.clear();
+										vector<double> R = windowCoefficients.first;
+										compressFile << "R's are:" << endl;
+										for(int j=0;j<13;j++)
+										{
+											compressFile << R[j] << " ";
+										}
+										compressFile << endl;
 
-											vector<double> alpha = windowCoefficients.second;
-											if(alpha.size()==0)
+										vector<double> alpha = windowCoefficients.second;
+										if(alpha.size()==0)
+										{
+											compressFile << "Alpha's can't be calculated as R[0] is 0" << endl;
+										}
+										else
+										{
+											compressFile << "Alpha's are:" << endl;
+											for(int j=1;j<alpha.size();j++)
 											{
-												compressFile << "Alpha's can't be calculated as R[0] is 0" << endl;
+												compressFile << " " << alpha[j];
 											}
-											else
-											{
-												compressFile << "Alpha's are:" << endl;
-												for(int j=1;j<alpha.size();j++)
-												{
-													compressFile << " " << alpha[j];
-												}
-												compressFile << endl;
-											}
-
-											vector<long double> ceps;
-											cepstralcoefficients(R,alpha,ceps);
-
-											compressFile << "Ceps's are:" << endl;
-											for(int j=1;j<ceps.size();j++)
-											{
-												compressFile << " " << ceps[j];
-											}
-											compressFile << endl;
 											compressFile << endl;
 										}
+
+										vector<long double> ceps;
+										cepstralcoefficients(R,alpha,ceps);
+
+										compressFile << "Ceps's are:" << endl;
+										for(int j=1;j<ceps.size();j++)
+										{
+											compressFile << " " << ceps[j];
+										}
+										compressFile << endl;
+
+										vector<long double> weights = RaisedSineWeights();
+
+										vector<long double> raisedCeps(Q+1,0);
+										raisedCeps[0] = ceps[0]*weights[0]; 
+
+										compressFile << "Raised Ceps's are:" << endl;
+										for(int j=1;j<ceps.size();j++)
+										{
+											raisedCeps[j] = ceps[j]*weights[j];
+											compressFile << " " << raisedCeps[j];
+										}
+										compressFile << endl;
+
+										cepsTableForEachVowel[windowNo].push_back(raisedCeps);
+										windowNo++;
+
+										compressFile << endl;
 									}
-									else
-									{
-										compressFile << "Steady Windows out of range" << endl;
-									}
+
 								}
 								else
 								{
-									outfile << "word was having less than 10 windows" << endl;
+
+									compressFile << "Steady Windows out of range" << endl;
 								}
+							}
+							else
+							{
+								outfile << "word was having less than 10 windows" << endl;
+							}
 							outfile << "word ended last word incompletely recorded" << endl;
 							word.clear();
 							wordStarted = 0;
@@ -547,8 +554,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		string suffix = "";
 		suffix = suffix + vowels[x] + ".txt";
 
-		string averageCepsFileName = AVERAGE_CEPS;
-		averageCepsFileName = averageCepsFileName + suffix;
+		string averageCepsFileName = CalculateFileName(suffix,AVERAGE_CEPS);
 		ofstream averageCepsEachVowel;							
 		averageCepsEachVowel.open(averageCepsFileName);
 
@@ -562,7 +568,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		averageCepsEachVowel.close();
 	}
-
+}
+void compareTestFiles(char vowels[], int vowelCount)
+{
 	ofstream result;
 	result.open(RESULT_FILE);
 	
@@ -572,9 +580,15 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			vector<long double> cepsForEachTestVowel[COUNT_STEADY_WINDOW];
 
-			double dcShift = CalculateDCShift(vowels[x],y,PRE_PATH_TEST);
+			string str = to_string(long long(y));
+			string suffix = "";
+			suffix = suffix + vowels[x] + "_" + str + ".txt";
 
-			pair<double,double> p = CalculateMaxAmpandSilenceSTE(dcShift,vowels[x],y,PRE_PATH_TEST);
+			string inFileName = CalculateFileName(suffix,PRE_PATH_TEST);
+
+			double dcShift = CalculateDCShift(inFileName);
+
+			pair<double,double> p = CalculateMaxAmpandSilenceSTE(dcShift,inFileName);
 	
 			double steSilence = p.first;
 			double thresholdSound = steSilence*THRESH_FACTOR;
@@ -583,22 +597,15 @@ int _tmain(int argc, _TCHAR* argv[])
 			double normalFactor = MAX_AMP/maxAmp;
 
 			//cout << steSilence << " " << thresholdSound << " " << maxAmp << " " << normalFactor << endl;
-			string str = to_string(long long(y));
-			string suffix = "";
-			suffix = suffix + vowels[x] + "_" + str + ".txt";
-
-			string inFileName = PRE_PATH_TEST;
-			inFileName = inFileName + suffix;
+			
 			ifstream infile;							
 			infile.open(inFileName);
 
-			string outFileName = PRE_PATH_TEST_OUTPUT;
-			outFileName = outFileName + suffix;
+			string outFileName = CalculateFileName(suffix,PRE_PATH_TEST_OUTPUT);
 			ofstream outfile;
 			outfile.open(outFileName);
 
-			string compressFileName = PRE_PATH_TEST_COFF;
-			compressFileName = compressFileName + suffix;
+			string compressFileName = CalculateFileName(suffix,PRE_PATH_TEST_COFF);
 			ofstream compressFile;
 			compressFile.open(compressFileName);
 
@@ -636,62 +643,83 @@ int _tmain(int argc, _TCHAR* argv[])
 						if(wordStarted==1)
 						{
 							if(word.size()>10)
+							{
+								//int steadyIndex = findSteadyIndex(word);
+								int steadyIndex = 5;
+								compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
+								if(steadyIndex+2<word.size() && steadyIndex-2>=0)
 								{
-									//int steadyIndex = findSteadyIndex(word);
-									int steadyIndex = 5;
-									compressFile << wordCount << "th word windows are " << word.size() << " and Coefficients are:" << endl;
-									if(steadyIndex+2<word.size() && steadyIndex-2>=0)
+									int windowNo = 0;
+									for(int i=steadyIndex-2;i<=steadyIndex+2;i++)
 									{
-										for(int i=steadyIndex-2;i<=steadyIndex+2;i++)
-										{
-											compressFile << i+1 << "th window coefficients are:" << endl;
+										compressFile << i+1 << "th window coefficients are:" << endl;
 							
-											pair<vector<double>,vector<double>> windowCoefficients = CalculateandFindCoefficients(word[i]);
+										pair<vector<double>,vector<double>> windowCoefficients = CalculateandFindCoefficients(word[i]);
 
-											vector<double> R = windowCoefficients.first;
-											compressFile << "R's are:" << endl;
-											for(int j=0;j<13;j++)
-											{
-												compressFile << R[j] << " ";
-											}
-											compressFile << endl;
+										vector<double> R = windowCoefficients.first;
+										compressFile << "R's are:" << endl;
+										for(int j=0;j<13;j++)
+										{
+											compressFile << R[j] << " ";
+										}
+										compressFile << endl;
 
-											vector<double> alpha = windowCoefficients.second;
-											if(alpha.size()==0)
+										vector<double> alpha = windowCoefficients.second;
+										if(alpha.size()==0)
+										{
+											compressFile << "Alpha's can't be calculated as R[0] is 0" << endl;
+										}
+										else
+										{
+											compressFile << "Alpha's are:" << endl;
+											for(int j=1;j<alpha.size();j++)
 											{
-												compressFile << "Alpha's can't be calculated as R[0] is 0" << endl;
+												compressFile << " " << alpha[j];
 											}
-											else
-											{
-												compressFile << "Alpha's are:" << endl;
-												for(int j=1;j<alpha.size();j++)
-												{
-													compressFile << " " << alpha[j];
-												}
-												compressFile << endl;
-											}
-
-											vector<long double> ceps;
-											cepstralcoefficients(R,alpha,ceps);
-
-											compressFile << "Ceps's are:" << endl;
-											for(int j=1;j<ceps.size();j++)
-											{
-												compressFile << " " << ceps[j];
-											}
-											compressFile << endl;
 											compressFile << endl;
 										}
+
+										vector<long double> ceps;
+										cepstralcoefficients(R,alpha,ceps);
+
+										compressFile << "Ceps's are:" << endl;
+										for(int j=1;j<ceps.size();j++)
+										{
+											compressFile << " " << ceps[j];
+										}
+										compressFile << endl;
+
+										vector<long double> raisedCeps(Q+1,0);
+
+										vector<long double> weights = RaisedSineWeights();
+
+										raisedCeps[0] = ceps[0]*weights[0]; 
+
+										compressFile << "Raised Ceps's are:" << endl;
+										for(int j=1;j<ceps.size();j++)
+										{
+											raisedCeps[j] = ceps[j]*weights[j];
+											compressFile << " " << raisedCeps[j];
+										}
+										compressFile << endl;
+
+										cepsForEachTestVowel[windowNo] = raisedCeps;
+
+										windowNo++;
+
+										compressFile << endl;
 									}
-									else
-									{
-										compressFile << "Steady Windows out of range" << endl;
-									}
+
 								}
 								else
 								{
-									outfile << "word was having less than 10 windows" << endl;
+									compressFile << "Steady Windows out of range" << endl;
 								}
+							}
+							else
+							{
+								outfile << "word was having less than 10 windows" << endl;
+							}
 							outfile << "word ended last word incompletely recorded" << endl;
 							word.clear();
 							wordStarted = 0;
@@ -822,9 +850,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				string suffix = "";
 				suffix = suffix + vowels[l] + ".txt";
 
-				string averageCepsFileName = AVERAGE_CEPS;
-
-				averageCepsFileName = averageCepsFileName + suffix;
+				string averageCepsFileName = CalculateFileName(suffix,AVERAGE_CEPS);
 				ifstream averageCepsEachVowel;							
 				averageCepsEachVowel.open(averageCepsFileName);
 
@@ -864,7 +890,6 @@ int _tmain(int argc, _TCHAR* argv[])
 				{
 					if(minDistance > totalDist)
 					{
-						cout << " entered min" << endl;
 						minDistance = totalDist;
 						vow = vowels[l];
 					}
@@ -877,6 +902,16 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 	result.close();
+}
+int _tmain(int argc, _TCHAR* argv[])
+{
+	char vowels[] = {'a','e','i','o','u'};
+	//char vowels[] = {'a'};
+	int vowelCount = sizeof(vowels)/sizeof(vowels[0]);
+
+	calculateAverageCepstralCoefficientForEachVowel(vowels,vowelCount);
+
+	compareTestFiles(vowels,vowelCount);
 
 	system("pause");
 	return 0;
