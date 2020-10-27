@@ -896,9 +896,9 @@ void compareTestFiles(char vowels[], int vowelCount)
 				}
 				cout << minDistance << endl;
 			}
-			cout << inFileName << " vowel: " << vow << " minDistance: " << minDistance << endl;
+			cout << inFileName << "     Recognized Vowel: " << vow << "     minDistance: " << minDistance << endl;
 			cout << endl;
-			result << inFileName << " vowel: " << vow << " minDistance: " << minDistance << endl;
+			result << inFileName << "     Recognized Vowel: " << vow << "     minDistance: " << minDistance << endl;
 		}
 	}
 	result.close();
